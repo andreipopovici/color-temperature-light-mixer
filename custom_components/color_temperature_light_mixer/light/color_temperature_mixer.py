@@ -198,6 +198,12 @@ class ColorTemperatureMixerLight(LightGroup, ColorTemperatureMixerEntity, Restor
 
         super().async_update_group_state()
 
+        # LightGroup derives supported modes from the child entities.
+        # Our child entities are brightness-only, but this virtual entity
+        # intentionally exposes color temperature.
+        self._attr_supported_color_modes = {ColorMode.COLOR_TEMP}
+        self._attr_color_mode = ColorMode.COLOR_TEMP
+
         states = [state for entity_id in self._entity_ids if (state := self.hass.states.get(entity_id)) is not None]
         on_states = [state for state in states if state.state == STATE_ON]
 
