@@ -48,6 +48,12 @@ class BrightnessCalculator:
     priority: BrightnessTemperaturePriority = BrightnessTemperaturePriority.MIXED
     """Govern the behavior when we we want to reach a brightness and temperature outside the admissible range"""
 
+    constant_brightness: bool = False
+    """Whether to limit per-channel intensity so that the mid temperature does not exceed a fixed percentage."""
+
+    max_constant_brightness_level: int = 50
+    """Maximum per-channel intensity at the mid temperature, expressed as a percentage."""
+
     def compute_brightnesses(self) -> tuple[int, int]:
         """Compute the warm and cold light brightness required to reach the target temperature.
 
@@ -69,38 +75,57 @@ class BrightnessCalculator:
         cold_temperature_mired = color_temperature_kelvin_to_mired(self.cold_temperature_kelvin)
 
         # These functions are obtained by inverting the one defined in the util module `rgbww_to_color_temperature()`
-        cold_brightness, warm_brightness = self._decompose_brightnesses(
-            target_temperature_mired,
-            self.target_brightness,
-            warm_temperature_mired,
-            cold_temperature_mired,
-        )
+        if self.constant_brightness:
+            max_channel_brightness = max(
+                1,
+                min(
+                    self.target_brightness,
+                    round(
+                        self.target_brightness * self.max_constant_brightness_level / 100,
+                    ),
+                ),
+            )
+        else:
+            max_channel_brightness = self.target_brightness
 
-        # Compute the half-point between the range of possible temperatures
         half_temperature_mired = (warm_temperature_mired + cold_temperature_mired) / 2
 
-        # Flag that takes into account if the target temperature is in the first or second half of the temperature range
-        is_temp_in_second_half = target_temperature_mired > half_temperature_mired
-
-        if is_temp_in_second_half and warm_brightness > BRIGHTNESS_RANGE[1]:
-            # If the computed warm brightness is greater than the achievable brightness, mirror the temperature against the x=target_temperature_mired line,
-            # obtaining the specular case than the one in the other branch
-            mirrored_temperature_mired = 2 * half_temperature_mired - target_temperature_mired
-            cold_brightness, warm_brightness = self._target_outside_range(
-                mirrored_temperature_mired,
-                warm_temperature_mired,
-                cold_temperature_mired,
+        if target_temperature_mired <= half_temperature_mired:
+            warm_brightness = round(
+                self.target_brightness
+                - (self.target_brightness - max_channel_brightness)
+                * (
+                    (target_temperature_mired - warm_temperature_mired)
+                    / (half_temperature_mired - warm_temperature_mired)
+                )
             )
-        elif cold_brightness > BRIGHTNESS_RANGE[1]:
-            # If the cold brightness is greater than the achievable brightness, scale it back to an acceptable range,
-            # depending on the priority between brightness and temperature
-            warm_brightness, cold_brightness = self._target_outside_range(
-                target_temperature_mired, warm_temperature_mired, cold_temperature_mired
+            cold_brightness = round(
+                max_channel_brightness
+                * (
+                    (target_temperature_mired - warm_temperature_mired)
+                    / (half_temperature_mired - warm_temperature_mired)
+                )
+            )
+        else:
+            warm_brightness = round(
+                max_channel_brightness
+                * (
+                    (cold_temperature_mired - target_temperature_mired)
+                    / (cold_temperature_mired - half_temperature_mired)
+                )
+            )
+            cold_brightness = round(
+                self.target_brightness
+                - (self.target_brightness - max_channel_brightness)
+                * (
+                    (cold_temperature_mired - target_temperature_mired)
+                    / (cold_temperature_mired - half_temperature_mired)
+                )
             )
 
         # Clamp brightness to acceptable ranges
-        warm_brightness = min(warm_brightness, BRIGHTNESS_RANGE[1])
-        cold_brightness = min(cold_brightness, BRIGHTNESS_RANGE[1])
+        warm_brightness = max(0, min(warm_brightness, BRIGHTNESS_RANGE[1]))
+        cold_brightness = max(0, min(cold_brightness, BRIGHTNESS_RANGE[1]))
         return warm_brightness, cold_brightness
 
     def _target_outside_range(

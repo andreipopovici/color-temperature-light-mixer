@@ -11,6 +11,8 @@ from graphql import UndefinedType
 from custom_components.color_temperature_light_mixer.const import (
     CONF_COLD_LIGHT,
     CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
+    CONF_CONSTANT_BRIGHTNESS_MODE,
+    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
     CONF_WARM_LIGHT,
     CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
     LOGGER,
@@ -28,7 +30,7 @@ from homeassistant.components.group.light import FORWARDED_ATTRIBUTES, LightGrou
 from homeassistant.components.group.util import find_state_attributes
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_COLOR_TEMP_KELVIN
 from homeassistant.components.light.const import DOMAIN as DOMAIN_LIGHT, ColorMode
-from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON, STATE_ON
+from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_OFF, SERVICE_TURN_ON, STATE_ON
 from homeassistant.core import State, callback
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -67,6 +69,7 @@ class ColorTemperatureMixerLight(LightGroup, ColorTemperatureMixerEntity, Restor
             entity_description=entity_description,
         )
 
+        self._config_entry = config_entry
         self._attr_min_color_temp_kelvin = config_entry.data[CONF_WARM_LIGHT_TEMPERATURE_KELVIN]
         self._attr_max_color_temp_kelvin = config_entry.data[CONF_COLD_LIGHT_TEMPERATURE_KELVIN]
 
@@ -160,6 +163,14 @@ class ColorTemperatureMixerLight(LightGroup, ColorTemperatureMixerEntity, Restor
             target_temp_kelvin,
             target_brightness,
             priority,
+            constant_brightness=self._config_entry.options.get(
+                CONF_CONSTANT_BRIGHTNESS_MODE,
+                self._config_entry.data.get(CONF_CONSTANT_BRIGHTNESS_MODE, False),
+            ),
+            max_constant_brightness_level=self._config_entry.options.get(
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                self._config_entry.data.get(CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL, 50),
+            ),
         )
         ww_brightness, cw_brightness = brightness_calculator.compute_brightnesses()
 
@@ -173,12 +184,34 @@ class ColorTemperatureMixerLight(LightGroup, ColorTemperatureMixerEntity, Restor
         service_calls = []
         for light in (ww, cw):
             target = {ATTR_ENTITY_ID: light.entity_id}
-            service_data = light.common_data
 
+            if light.brightness == 0:
+                LOGGER.debug(
+                    "%s: forwarding service turn_off call to: %s",
+                    self._friendly_name(),
+                    target,
+                )
+                service_calls.append(
+                    self.hass.services.async_call(
+                        DOMAIN_LIGHT,
+                        SERVICE_TURN_OFF,
+                        target=target,
+                        blocking=False,
+                        context=self._context,
+                    )
+                )
+                continue
+
+            service_data = light.common_data
             if light.brightness is not None:
                 service_data[ATTR_BRIGHTNESS] = light.brightness
 
-            LOGGER.debug("%s: forwarding service turn_on call to: %s %s", self._friendly_name(), target, service_data)
+            LOGGER.debug(
+                "%s: forwarding service turn_on call to: %s %s",
+                self._friendly_name(),
+                target,
+                service_data,
+            )
             service_calls.append(
                 self.hass.services.async_call(
                     DOMAIN_LIGHT,

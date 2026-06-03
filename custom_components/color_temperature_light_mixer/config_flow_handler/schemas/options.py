@@ -17,6 +17,14 @@ from typing import Any
 
 import voluptuous as vol
 
+from custom_components.color_temperature_light_mixer.const import (
+    CONF_CONSTANT_BRIGHTNESS_MODE,
+    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+    DEFAULT_CONSTANT_BRIGHTNESS_MODE,
+    DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+)
+from homeassistant.helpers import selector
+
 
 def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """
@@ -30,7 +38,35 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 
     """
     defaults = defaults or {}
-    return vol.Schema({})
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_CONSTANT_BRIGHTNESS_MODE,
+                default=defaults.get(
+                    CONF_CONSTANT_BRIGHTNESS_MODE,
+                    DEFAULT_CONSTANT_BRIGHTNESS_MODE,
+                ),
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
+            vol.Required(
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                default=defaults.get(
+                    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                ),
+                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=100,
+                    step=1,
+                    mode=selector.NumberSelectorMode.SLIDER,
+                    unit_of_measurement="%",
+                ),
+            ),
+        }
+    )
 
 
 __all__ = [

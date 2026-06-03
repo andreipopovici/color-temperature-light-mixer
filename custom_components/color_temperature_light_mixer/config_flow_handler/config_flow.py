@@ -14,6 +14,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from custom_components.color_temperature_light_mixer.config_flow_handler.options_flow import (
+    ColorTemperatureMixerOptionsFlow,
+)
 from custom_components.color_temperature_light_mixer.config_flow_handler.schemas import (
     get_reconfigure_schema,
     get_user_schema,
@@ -40,23 +43,6 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
     """
 
     VERSION = 1
-
-    # @staticmethod
-    # def async_get_options_flow(
-    #     config_entry: config_entries.ConfigEntry,
-    # ) -> ColorTemperatureMixerOptionsFlow:
-    #     """
-    #     Get the options flow for this handler.
-
-    #     Returns:
-    #         The options flow instance for modifying integration options.
-
-    #     """
-    #     from custom_components.color_temperature_light_mixer.config_flow_handler.options_flow import (
-    #         ColorTemperatureMixerOptionsFlow,
-    #     )
-
-    #     return ColorTemperatureMixerOptionsFlow()
 
     async def async_step_user(
         self,
@@ -127,6 +113,19 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
             data_schema=get_reconfigure_schema(entry.data),
             errors=errors,
         )
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> ColorTemperatureMixerOptionsFlow:
+        """
+        Get the options flow for this handler.
+
+        Returns:
+            The options flow instance for modifying integration options.
+
+        """
+        return ColorTemperatureMixerOptionsFlow()
 
     async def async_step_import(
         self,

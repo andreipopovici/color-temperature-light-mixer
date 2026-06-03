@@ -8,7 +8,9 @@
           "warm_light_entity_id": "Light source acting as the warm light to be mixed",
           "warm_light_color_temp_kelvin": "White color temperature of the warm light",
           "cold_light_entity_id": "Light source acting as the cold light to be mixed",
-          "cold_light_color_temp_kelvin": "White color temperature of the cold light"
+          "cold_light_color_temp_kelvin": "White color temperature of the cold light",
+          "constant_brightness_mode": "Use constant-brightness mixing instead of additive mixing",
+          "max_constant_brightness_level": "Maximum per-channel intensity at the midpoint color temperature (%)"
         }
       },
       "reconfigure": {
@@ -17,7 +19,16 @@
           "warm_light_entity_id": "Light source acting as the warm light to be mixed",
           "warm_light_color_temp_kelvin": "White color temperature of the warm light",
           "cold_light_entity_id": "Light source acting as the cold light to be mixed",
-          "cold_light_color_temp_kelvin": "White color temperature of the cold light"
+          "cold_light_color_temp_kelvin": "White color temperature of the cold light",
+          "constant_brightness_mode": "Use constant-brightness mixing instead of additive mixing",
+          "max_constant_brightness_level": "Maximum per-channel intensity at the midpoint color temperature (%)"
+        }
+      },
+      "init": {
+        "description": "Update the mixing behavior for the configured light group",
+        "data": {
+          "constant_brightness_mode": "Use constant-brightness mixing instead of additive mixing",
+          "max_constant_brightness_level": "Maximum per-channel intensity at the midpoint color temperature (%)"
         }
       }
     },

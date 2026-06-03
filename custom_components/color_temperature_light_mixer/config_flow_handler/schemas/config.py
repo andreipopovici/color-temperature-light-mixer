@@ -20,10 +20,14 @@ import voluptuous as vol
 from custom_components.color_temperature_light_mixer.const import (
     CONF_COLD_LIGHT,
     CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
+    CONF_CONSTANT_BRIGHTNESS_MODE,
     CONF_DEFAULT_COLD_LIGHT_TEMPERATURE,
     CONF_DEFAULT_WARM_LIGHT_TEMPERATURE,
+    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
     CONF_WARM_LIGHT,
     CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
+    DEFAULT_CONSTANT_BRIGHTNESS_MODE,
+    DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
 )
 from homeassistant.components.light.const import DOMAIN as LIGHT_DOMAIN
 from homeassistant.const import CONF_NAME
@@ -86,6 +90,31 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                     unit=selector.ColorTempSelectorUnit.KELVIN,
                 ),
             ),
+            vol.Required(
+                CONF_CONSTANT_BRIGHTNESS_MODE,
+                default=defaults.get(
+                    CONF_CONSTANT_BRIGHTNESS_MODE,
+                    DEFAULT_CONSTANT_BRIGHTNESS_MODE,
+                ),
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
+            vol.Required(
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                default=defaults.get(
+                    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                ),
+                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=100,
+                    step=1,
+                    mode=selector.NumberSelectorMode.SLIDER,
+                    unit_of_measurement="%",
+                ),
+            ),
         },
     )
 
@@ -135,6 +164,31 @@ def get_reconfigure_schema(defaults: Mapping[str, str]) -> vol.Schema:
             ): selector.ColorTempSelector(
                 selector.ColorTempSelectorConfig(
                     unit=selector.ColorTempSelectorUnit.KELVIN,
+                ),
+            ),
+            vol.Required(
+                CONF_CONSTANT_BRIGHTNESS_MODE,
+                default=defaults.get(
+                    CONF_CONSTANT_BRIGHTNESS_MODE,
+                    DEFAULT_CONSTANT_BRIGHTNESS_MODE,
+                ),
+            ): selector.BooleanSelector(
+                selector.BooleanSelectorConfig(),
+            ),
+            vol.Required(
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                default=defaults.get(
+                    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                ),
+                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=100,
+                    step=1,
+                    mode=selector.NumberSelectorMode.SLIDER,
+                    unit_of_measurement="%",
                 ),
             ),
         }
