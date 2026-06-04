@@ -119,7 +119,7 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     )
 
 
-def get_reconfigure_schema(defaults: Mapping[str, str]) -> vol.Schema:
+def get_reconfigure_schema(defaults: Mapping[str, Any]) -> vol.Schema:
     """
     Get schema for reconfigure step.
 

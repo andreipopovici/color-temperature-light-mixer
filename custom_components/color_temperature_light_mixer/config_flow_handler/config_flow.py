@@ -14,14 +14,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from custom_components.color_temperature_light_mixer.config_flow_handler.options_flow import (
-    ColorTemperatureMixerOptionsFlow,
-)
 from custom_components.color_temperature_light_mixer.config_flow_handler.schemas import (
     get_reconfigure_schema,
     get_user_schema,
 )
-from custom_components.color_temperature_light_mixer.const import DOMAIN, LOGGER
+from custom_components.color_temperature_light_mixer.const import (
+    CONF_COLD_LIGHT,
+    CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
+    CONF_CONSTANT_BRIGHTNESS_MODE,
+    CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+    CONF_WARM_LIGHT,
+    CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
+    DOMAIN,
+    LOGGER,
+)
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
 from homeassistant.loader import async_get_loaded_integration
@@ -103,29 +109,30 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            data_updates = {
+                CONF_WARM_LIGHT: user_input[CONF_WARM_LIGHT],
+                CONF_WARM_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_WARM_LIGHT_TEMPERATURE_KELVIN],
+                CONF_COLD_LIGHT: user_input[CONF_COLD_LIGHT],
+                CONF_COLD_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_COLD_LIGHT_TEMPERATURE_KELVIN],
+            }
+            options = {
+                **entry.options,
+                CONF_CONSTANT_BRIGHTNESS_MODE: user_input[CONF_CONSTANT_BRIGHTNESS_MODE],
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL: user_input[CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL],
+            }
+
             return self.async_update_reload_and_abort(
                 entry,
-                data=user_input,
+                data_updates=data_updates,
+                options=options,
             )
 
+        defaults = {**entry.data, **entry.options}
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=get_reconfigure_schema(entry.data),
+            data_schema=get_reconfigure_schema(defaults),
             errors=errors,
         )
-
-    @staticmethod
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> ColorTemperatureMixerOptionsFlow:
-        """
-        Get the options flow for this handler.
-
-        Returns:
-            The options flow instance for modifying integration options.
-
-        """
-        return ColorTemperatureMixerOptionsFlow()
 
     async def async_step_import(
         self,
