@@ -14,6 +14,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from custom_components.color_temperature_light_mixer.config_flow_handler.options_flow import (
+    ColorTemperatureMixerOptionsFlow,
+)
 from custom_components.color_temperature_light_mixer.config_flow_handler.schemas import (
     get_reconfigure_schema,
     get_user_schema,
@@ -30,7 +33,24 @@ from custom_components.color_temperature_light_mixer.const import (
 )
 from homeassistant import config_entries
 from homeassistant.const import CONF_NAME
+from homeassistant.core import callback
 from homeassistant.loader import async_get_loaded_integration
+
+
+def _split_config_and_options(user_input: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Split immutable setup data from mutable mixer options."""
+    data = {
+        CONF_NAME: user_input[CONF_NAME],
+        CONF_WARM_LIGHT: user_input[CONF_WARM_LIGHT],
+        CONF_WARM_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_WARM_LIGHT_TEMPERATURE_KELVIN],
+        CONF_COLD_LIGHT: user_input[CONF_COLD_LIGHT],
+        CONF_COLD_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_COLD_LIGHT_TEMPERATURE_KELVIN],
+    }
+    options = {
+        CONF_CONSTANT_BRIGHTNESS_MODE: user_input[CONF_CONSTANT_BRIGHTNESS_MODE],
+        CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL: user_input[CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL],
+    }
+    return data, options
 
 
 class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -49,6 +69,14 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
     """
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        _config_entry: config_entries.ConfigEntry,
+    ) -> ColorTemperatureMixerOptionsFlow:
+        """Create the options flow."""
+        return ColorTemperatureMixerOptionsFlow()
 
     async def async_step_user(
         self,
@@ -72,10 +100,12 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
             # Set unique ID based on username
             # await self.async_set_unique_id(slugify(user_input[CONF_NAME]))
             # self._abort_if_unique_id_configured()
+            data, options = _split_config_and_options(user_input)
 
             return self.async_create_entry(
                 title=user_input[CONF_NAME],
-                data=user_input,
+                data=data,
+                options=options,
             )
 
         integration = async_get_loaded_integration(self.hass, DOMAIN)
@@ -109,12 +139,19 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            data_updates = {
-                CONF_WARM_LIGHT: user_input[CONF_WARM_LIGHT],
-                CONF_WARM_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_WARM_LIGHT_TEMPERATURE_KELVIN],
-                CONF_COLD_LIGHT: user_input[CONF_COLD_LIGHT],
-                CONF_COLD_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_COLD_LIGHT_TEMPERATURE_KELVIN],
+            data = {
+                key: value
+                for key, value in entry.data.items()
+                if key not in (CONF_CONSTANT_BRIGHTNESS_MODE, CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL)
             }
+            data.update(
+                {
+                    CONF_WARM_LIGHT: user_input[CONF_WARM_LIGHT],
+                    CONF_WARM_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_WARM_LIGHT_TEMPERATURE_KELVIN],
+                    CONF_COLD_LIGHT: user_input[CONF_COLD_LIGHT],
+                    CONF_COLD_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_COLD_LIGHT_TEMPERATURE_KELVIN],
+                }
+            )
             options = {
                 **entry.options,
                 CONF_CONSTANT_BRIGHTNESS_MODE: user_input[CONF_CONSTANT_BRIGHTNESS_MODE],
@@ -123,7 +160,7 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
 
             return self.async_update_reload_and_abort(
                 entry,
-                data_updates=data_updates,
+                data=data,
                 options=options,
             )
 
@@ -151,9 +188,11 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
                 self._abort_if_unique_id_configured(updates=user_input)
 
         LOGGER.debug("Creating new config entry titled %s", user_input[CONF_NAME])
+        data, options = _split_config_and_options(user_input)
         return self.async_create_entry(
             title=user_input[CONF_NAME],
-            data=user_input,
+            data=data,
+            options=options,
         )
 
 

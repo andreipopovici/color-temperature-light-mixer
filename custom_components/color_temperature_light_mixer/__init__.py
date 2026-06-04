@@ -92,7 +92,6 @@ async def async_setup_entry(
 
     This is called when a config entry is loaded. It:
     1. Sets up all platforms (sensors, switches, etc.)
-    2. Sets up reload listener for config changes
 
     Data flow in this integration:
     1. User enter configurations options (config_flow.py)
@@ -109,7 +108,6 @@ async def async_setup_entry(
     """
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
@@ -125,7 +123,6 @@ async def async_unload_entry(
     It ensures proper cleanup of:
     - All platform entities
     - Registered services
-    - Update listeners
 
     Args:
         hass: The Home Assistant instance.
@@ -138,23 +135,3 @@ async def async_unload_entry(
     https://developers.home-assistant.io/docs/config_entries_index/#unloading-entries
     """
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-
-async def async_reload_entry(
-    hass: HomeAssistant,
-    entry: ColorTemperatureMixerConfigEntry,
-) -> None:
-    """
-    Reload config entry.
-
-    This is called when the integration configuration or options have changed.
-    It unloads and then reloads the integration with the new configuration.
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry being reloaded.
-
-    For more information:
-    https://developers.home-assistant.io/docs/config_entries_index/#reloading-entries
-    """
-    await hass.config_entries.async_reload(entry.entry_id)

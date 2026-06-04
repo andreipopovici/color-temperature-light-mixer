@@ -16,7 +16,7 @@ from custom_components.color_temperature_light_mixer.config_flow_handler.schemas
 from homeassistant import config_entries
 
 
-class ColorTemperatureMixerOptionsFlow(config_entries.OptionsFlow):
+class ColorTemperatureMixerOptionsFlow(config_entries.OptionsFlowWithReload):
     """
     Handle options flow for the integration.
 
