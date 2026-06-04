@@ -114,6 +114,8 @@ class ColorTemperatureMixerConfigFlowHandler(config_entries.ConfigFlow, domain=D
                 CONF_WARM_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_WARM_LIGHT_TEMPERATURE_KELVIN],
                 CONF_COLD_LIGHT: user_input[CONF_COLD_LIGHT],
                 CONF_COLD_LIGHT_TEMPERATURE_KELVIN: user_input[CONF_COLD_LIGHT_TEMPERATURE_KELVIN],
+                CONF_CONSTANT_BRIGHTNESS_MODE: user_input[CONF_CONSTANT_BRIGHTNESS_MODE],
+                CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL: user_input[CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL],
             }
             options = {
                 **entry.options,
