@@ -34,6 +34,11 @@ from homeassistant.const import CONF_NAME
 from homeassistant.helpers import selector
 
 
+def _suggested_value(defaults: Mapping[str, Any], key: str, fallback: Any) -> Any:
+    """Return the current value to show in selector-backed form controls."""
+    return defaults.get(key, fallback)
+
+
 def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """
     Get schema for user step (initial setup).
@@ -67,7 +72,13 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
                 default=defaults.get(CONF_WARM_LIGHT_TEMPERATURE_KELVIN, vol.UNDEFINED),
-                description={"suggested_value": CONF_DEFAULT_WARM_LIGHT_TEMPERATURE},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
+                        CONF_DEFAULT_WARM_LIGHT_TEMPERATURE,
+                    ),
+                },
             ): selector.ColorTempSelector(
                 selector.ColorTempSelectorConfig(
                     unit=selector.ColorTempSelectorUnit.KELVIN,
@@ -84,7 +95,13 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
                 default=defaults.get(CONF_COLD_LIGHT_TEMPERATURE_KELVIN, vol.UNDEFINED),
-                description={"suggested_value": CONF_DEFAULT_COLD_LIGHT_TEMPERATURE},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
+                        CONF_DEFAULT_COLD_LIGHT_TEMPERATURE,
+                    ),
+                },
             ): selector.ColorTempSelector(
                 selector.ColorTempSelectorConfig(
                     unit=selector.ColorTempSelectorUnit.KELVIN,
@@ -105,7 +122,13 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                     CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                     DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                 ),
-                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                        DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    ),
+                },
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=1,
@@ -143,7 +166,13 @@ def get_reconfigure_schema(defaults: Mapping[str, Any]) -> vol.Schema:
             vol.Required(
                 CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
                 default=defaults.get(CONF_WARM_LIGHT_TEMPERATURE_KELVIN, vol.UNDEFINED),
-                description={"suggested_value": CONF_DEFAULT_WARM_LIGHT_TEMPERATURE},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_WARM_LIGHT_TEMPERATURE_KELVIN,
+                        CONF_DEFAULT_WARM_LIGHT_TEMPERATURE,
+                    ),
+                },
             ): selector.ColorTempSelector(
                 selector.ColorTempSelectorConfig(
                     unit=selector.ColorTempSelectorUnit.KELVIN,
@@ -160,7 +189,13 @@ def get_reconfigure_schema(defaults: Mapping[str, Any]) -> vol.Schema:
             vol.Required(
                 CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
                 default=defaults.get(CONF_COLD_LIGHT_TEMPERATURE_KELVIN, vol.UNDEFINED),
-                description={"suggested_value": CONF_DEFAULT_COLD_LIGHT_TEMPERATURE},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_COLD_LIGHT_TEMPERATURE_KELVIN,
+                        CONF_DEFAULT_COLD_LIGHT_TEMPERATURE,
+                    ),
+                },
             ): selector.ColorTempSelector(
                 selector.ColorTempSelectorConfig(
                     unit=selector.ColorTempSelectorUnit.KELVIN,
@@ -181,7 +216,13 @@ def get_reconfigure_schema(defaults: Mapping[str, Any]) -> vol.Schema:
                     CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                     DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                 ),
-                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                        DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    ),
+                },
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=1,

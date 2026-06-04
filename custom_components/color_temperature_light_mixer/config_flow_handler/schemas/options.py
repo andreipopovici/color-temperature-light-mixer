@@ -26,6 +26,11 @@ from custom_components.color_temperature_light_mixer.const import (
 from homeassistant.helpers import selector
 
 
+def _suggested_value(defaults: Mapping[str, Any], key: str, fallback: Any) -> Any:
+    """Return the current value to show in selector-backed form controls."""
+    return defaults.get(key, fallback)
+
+
 def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """
     Get schema for options flow.
@@ -55,7 +60,13 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                     CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                     DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
                 ),
-                description={"suggested_value": DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL},
+                description={
+                    "suggested_value": _suggested_value(
+                        defaults,
+                        CONF_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                        DEFAULT_MAX_CONSTANT_BRIGHTNESS_LEVEL,
+                    ),
+                },
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=1,
