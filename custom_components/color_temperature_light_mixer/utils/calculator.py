@@ -88,39 +88,26 @@ class BrightnessCalculator:
         else:
             max_channel_brightness = self.target_brightness
 
-        half_temperature_mired = (warm_temperature_mired + cold_temperature_mired) / 2
+        temperature_span = cold_temperature_mired - warm_temperature_mired
+        temperature_position = (target_temperature_mired - warm_temperature_mired) / temperature_span
+        temperature_position = max(0, min(temperature_position, 1))
 
-        if target_temperature_mired <= half_temperature_mired:
+        if temperature_position == 0:
+            return self.target_brightness, 0
+        if temperature_position == 1:
+            return 0, self.target_brightness
+
+        if temperature_position <= 0.5:
+            ratio = temperature_position / 0.5
             warm_brightness = round(
-                self.target_brightness
-                - (self.target_brightness - max_channel_brightness)
-                * (
-                    (target_temperature_mired - warm_temperature_mired)
-                    / (half_temperature_mired - warm_temperature_mired)
-                )
+                self.target_brightness - (self.target_brightness - max_channel_brightness) * ratio
             )
-            cold_brightness = round(
-                max_channel_brightness
-                * (
-                    (target_temperature_mired - warm_temperature_mired)
-                    / (half_temperature_mired - warm_temperature_mired)
-                )
-            )
+            cold_brightness = round(max_channel_brightness * ratio)
         else:
-            warm_brightness = round(
-                max_channel_brightness
-                * (
-                    (cold_temperature_mired - target_temperature_mired)
-                    / (cold_temperature_mired - half_temperature_mired)
-                )
-            )
+            ratio = (1 - temperature_position) / 0.5
+            warm_brightness = round(max_channel_brightness * ratio)
             cold_brightness = round(
-                self.target_brightness
-                - (self.target_brightness - max_channel_brightness)
-                * (
-                    (cold_temperature_mired - target_temperature_mired)
-                    / (cold_temperature_mired - half_temperature_mired)
-                )
+                self.target_brightness - (self.target_brightness - max_channel_brightness) * ratio
             )
 
         # Clamp brightness to acceptable ranges
